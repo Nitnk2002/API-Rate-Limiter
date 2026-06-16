@@ -33,28 +33,27 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          server-id: github
-          server-username: GITHUB_ACTOR
-          server-password: GITHUB_TOKEN
+          # ✅ NO server-id here anymore
+
+      - name: Write Maven settings.xml
+        run: |
+          mkdir -p ~/.m2
+          cat > ~/.m2/settings.xml << 'EOF'
+          <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0">
+            <servers>
+              <server>
+                <id>github</id>
+                <username>${{ github.actor }}</username>
+                <password>${{ secrets.GITHUB_TOKEN }}</password>
+              </server>
+            </servers>
+          </settings>
+          EOF
 
       - name: Make Maven Wrapper Executable
         run: chmod +x ./mvnw
 
-      # ✅ ADD THIS - verify settings.xml was created correctly
-      - name: Debug settings.xml
-        run: cat ~/.m2/settings.xml
-
-      # ✅ ADD THIS - verify token has correct permissions
-      - name: Verify token permissions
-        run: |
-          curl -s -o /dev/null -w "%{http_code}" \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            https://api.github.com/user/packages
-
       - name: Publish to GitHub Packages
-        run: ./mvnw -B deploy -DskipTests    # ✅ Add -DskipTests first to isolate deploy issue
+        run: ./mvnw -B deploy -DskipTests
         env:
-          GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SPRING_REDIS_HOST: localhost
-          SPRING_REDIS_PORT: 6379
