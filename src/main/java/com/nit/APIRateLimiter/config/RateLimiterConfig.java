@@ -9,24 +9,27 @@ import io.lettuce.core.RedisClient;
 import io.lettuce.core.TimeoutOptions;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
+import org.springframework.beans.factory.annotation.Value;
 import java.time.Duration;
 
 @Configuration
 public class RateLimiterConfig {
 
+    @Value("${REDIS_URL}")
+    private String redisUrl;
+
     @Bean
     public RedisClient redisClient() {
-        RedisClient client = RedisClient.create("redis://localhost:6379");
 
-        // Configure Lettuce to fail quickly when commands don't finish
+        RedisClient client = RedisClient.create(redisUrl);
+
         TimeoutOptions timeoutOptions = TimeoutOptions.builder()
-                .fixedTimeout(Duration.ofMillis(100)) // Force commands to abort after 100ms
+                .fixedTimeout(Duration.ofMillis(100))
                 .build();
 
         ClientOptions clientOptions = ClientOptions.builder()
                 .timeoutOptions(timeoutOptions)
-                .disconnectedBehavior(ClientOptions.DisconnectedBehavior.REJECT_COMMANDS) // Fail fast if disconnected
+                .disconnectedBehavior(ClientOptions.DisconnectedBehavior.REJECT_COMMANDS)
                 .build();
 
         client.setOptions(clientOptions);
@@ -36,15 +39,12 @@ public class RateLimiterConfig {
     @Bean
     public ProxyManager<byte[]> proxyManager(RedisClient redisClient) {
 
-        // 1. Define the Client Configuration (The proper Bucket4j 8.x approach)
         ClientSideConfig clientConfig = ClientSideConfig.getDefault()
                 .withExpirationAfterWriteStrategy(
-                        // This tells Redis to automatically delete the key 10 seconds
-                        // after the bucket has fully refilled to save memory.
-                        ExpirationAfterWriteStrategy.basedOnTimeForRefillingBucketUpToMax(Duration.ofSeconds(10))
+                        ExpirationAfterWriteStrategy
+                                .basedOnTimeForRefillingBucketUpToMax(Duration.ofSeconds(10))
                 );
 
-        // 2. Build and return the ProxyManager
         return LettuceBasedProxyManager.builderFor(redisClient)
                 .withClientSideConfig(clientConfig)
                 .build();

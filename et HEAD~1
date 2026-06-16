@@ -1,0 +1,12 @@
+[33m4f4de85[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m, [m[1;31morigin/master[m[33m)[m updated redis link
+[33m5bf2107[m update pom and added procfile
+[33m6ff8d4d[m fix: manual settings.xml + bump version to 0.0.3
+[33m1895bfc[m updated deploy.yml
+[33m09aca66[m version adjusted
+[33ma04d99c[m updated pom.xml
+[33m7c1a2bc[m updated pom.xml
+[33m776bb00[m updated maven deploy.yml
+[33m53f55c6[m updated  deploy.yml
+[33m3da35b5[m update location of deploy.yml
+[33m813c270[m added deploy.yml file
+[33m6cdd588[m Initialized Project
