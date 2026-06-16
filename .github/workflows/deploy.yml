@@ -1,6 +1,5 @@
-name: Publish Java Package to GitHub Packages
+name: Publish API Rate Limiter
 
-# Trigger the workflow when a new Release is published, or manually via the Actions tab
 on:
   release:
     types: [published]
@@ -10,7 +9,18 @@ jobs:
   publish:
     runs-on: ubuntu-latest
 
-    # Explicitly grant the GITHUB_TOKEN permission to write packages
+    # 1. Spin up a temporary Redis service for the Spring Boot tests
+    services:
+      redis:
+        image: redis:latest
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     permissions:
       contents: read
       packages: write
@@ -24,18 +34,19 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          # This must match the <id> in your pom.xml distributionManagement
-          server-id: github
-          server-username: GITHUB_ACTOR
-          server-password: GITHUB_TOKEN
 
-      # Ensure the Maven wrapper is executable before running it
-      - name: Make Maven Wrapper Executable
-        run: chmod +x ./mvnw
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
 
-      # Run the deploy phase. The -B flag runs Maven in non-interactive batch mode
-      - name: Publish Package
-        run: ./mvnw -B deploy
+      - name: Make Gradle Wrapper Executable
+        run: chmod +x ./gradlew
+
+      # 2. Run the build, tests, and publish phase using Gradle
+      - name: Publish to GitHub Packages
+        run: ./gradlew publish
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Ensure Spring Boot knows where to find the workflow's Redis container
+          SPRING_REDIS_HOST: localhost
+          SPRING_REDIS_PORT: 6379
