@@ -8,7 +8,7 @@
 		<version>4.0.6</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.nit</groupId>
+	<groupId>com.github.nitnk2002</groupId>
 	<artifactId>APIRateLimiter</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name/>
