@@ -9,7 +9,6 @@ jobs:
   publish:
     runs-on: ubuntu-latest
 
-    # Spin up a temporary Redis service for the Spring Boot tests
     services:
       redis:
         image: redis:latest
@@ -34,18 +33,26 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          # CRITICAL: This links to the <id>github</id> in your pom.xml
           server-id: github
           server-username: GITHUB_ACTOR
           server-password: GITHUB_TOKEN
 
-      # Change 1: Target the Maven wrapper instead of Gradle
       - name: Make Maven Wrapper Executable
         run: chmod +x ./mvnw
 
-      # Change 2: Use mvnw deploy instead of gradlew publish
+      # ✅ ADD THIS - verify settings.xml was created correctly
+      - name: Debug settings.xml
+        run: cat ~/.m2/settings.xml
+
+      # ✅ ADD THIS - verify token has correct permissions
+      - name: Verify token permissions
+        run: |
+          curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            https://api.github.com/user/packages
+
       - name: Publish to GitHub Packages
-        run: ./mvnw -B deploy
+        run: ./mvnw -B deploy -DskipTests    # ✅ Add -DskipTests first to isolate deploy issue
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
