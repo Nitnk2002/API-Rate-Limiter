@@ -61,5 +61,21 @@
 			</plugin>
 		</plugins>
 	</build>
+	<distributionManagement>
+		<repository>
+			<id>github</id>
+			<name>GitHub Packages API Rate Limiter</name>
+			<url>https://maven.pkg.github.com/Nitnk2002/API-Rate-Limiter</url>
+		</repository>
+	</distributionManagement>
 
+	<repositories>
+		<repository>
+			<id>github</id>
+			<url>https://maven.pkg.github.com/Nitnk2002/API-Rate-Limiter</url>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
 </project>
