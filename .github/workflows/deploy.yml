@@ -9,7 +9,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
 
-    # 1. Spin up a temporary Redis service for the Spring Boot tests
+    # Spin up a temporary Redis service for the Spring Boot tests
     services:
       redis:
         image: redis:latest
@@ -34,19 +34,20 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+          # CRITICAL: This links to the <id>github</id> in your pom.xml
+          server-id: github
+          server-username: GITHUB_ACTOR
+          server-password: GITHUB_TOKEN
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
+      # Change 1: Target the Maven wrapper instead of Gradle
+      - name: Make Maven Wrapper Executable
+        run: chmod +x ./mvnw
 
-      - name: Make Gradle Wrapper Executable
-        run: chmod +x ./gradlew
-
-      # 2. Run the build, tests, and publish phase using Gradle
+      # Change 2: Use mvnw deploy instead of gradlew publish
       - name: Publish to GitHub Packages
-        run: ./gradlew publish
+        run: ./mvnw -B deploy
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Ensure Spring Boot knows where to find the workflow's Redis container
           SPRING_REDIS_HOST: localhost
           SPRING_REDIS_PORT: 6379
